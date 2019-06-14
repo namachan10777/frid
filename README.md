@@ -1,0 +1,2 @@
+# frid
+A smartware.
