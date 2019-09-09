@@ -19,10 +19,10 @@
       </p>
       <button @click="addFoods">追加</button>
       <ul>
-        <li v-for="item in list" :key="item.id">
+        <li v-for="item in list" :key="item.tapper_id" v-show="item.is_active">
           タッパーID: {{ item.tapper_id }}, 消費期限: {{ item.exp_date }}
           <button
-            @click="deleteFoods(item.id)"
+            @click="deleteFoods(item.tapper_id)"
           >削除</button>
         </li>
       </ul>
@@ -51,8 +51,6 @@ export default {
       exp_date: "",
       tapper_id: null,
       list: [],
-      lastId: 0,
-      qr: 2,
       result: "",
       error: "",
       hide_qr: true
@@ -102,24 +100,27 @@ export default {
       firebase
         .firestore()
         .collection("foods")
-        .doc(String(this.lastId))
+        .doc(String(this.tapper_id))
         .set({
-          id: this.lastId,
           tapper_id: this.tapper_id,
-          exp_date: this.exp_date
-        });
+          exp_date: this.exp_date,
+          is_active: true,
+        }, { merge: true} );
 
       this.tapper_id = null;
       this.exp_date = "";
     },
 
-    // databaseから削除
+    // is_active -> falseにしてリスト非表示
     deleteFoods(id) {
       firebase
         .firestore()
         .collection("foods")
         .doc(String(id))
-        .delete();
+        .set({
+          exp_date: "",
+          is_active: false,
+        }, { merge: true} );
     }
   },
 
@@ -141,7 +142,6 @@ export default {
         let buff = [];
         ss.forEach(doc => buff.push(doc.data()));
         this.list = buff;
-        this.lastId = buff.length;
       });
   }
 };
