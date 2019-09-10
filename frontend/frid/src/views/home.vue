@@ -1,22 +1,29 @@
 <template>
   <div class="home">
+    <header>
+      <h1>frid</h1>
+      <p class="login-info">
+        <i class="fas fa-user"></i>
+        {{ user.displayName }}
+      </p>
+      <div>
+        <button class="logout-button" @click="signOut">ログアウト</button>
+      </div>
+    </header>
     <div class="main" v-if="hide_qr">
-      {{ user.displayName }} でログインしています
-      <button @click="signOut">ログアウト</button>
-
       <div class="input-form">
         <div class="tapper">
           <input type="text" v-model="tapper_id" placeholder="タッパーID" />
           <i class="fas fa-box" aria-hidden="true"></i>
           <div class="qr-reader">
-          <input
-            type="image"
-            alt="qr"
-            src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
-            @click="qr_page"
-            width="25"
-            height="25"
-          />
+            <input
+              type="image"
+              alt="qr"
+              src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
+              @click="qr_page"
+              width="25"
+              height="25"
+            />
           </div>
         </div>
       </div>
@@ -189,17 +196,20 @@ export default {
 
 <style scoped>
 .foods-list {
+  border-radius: 15px;
+  width: 300px;
+  text-align: center;
   background-color: aquamarine;
-  margin-right: 20px;
-  margin-bottom: 20px;
-  margin-left: 0px;
+  margin: 20px;
   display: inline-block;
 }
 
 .input-form {
   position: relative;
   width: 10%;
+  margin-left: 20px;
 }
+
 .input-form input[type="text"] {
   font: 15px/24px sans-serif;
   box-sizing: border-box;
@@ -232,7 +242,7 @@ export default {
   max-width: 190px;
   display: inline-flex;
 }
-.input-form .exp-date{
+.input-form .exp-date {
   min-width: 270px;
   display: inline-flex;
 }
@@ -244,8 +254,48 @@ export default {
   height: 25px;
 }
 
-.add-button{
+.add-button {
   padding-left: 10px;
   padding-top: 10px;
+}
+
+header {
+  width: 100%;
+  height: 70px;
+  display: inline-flex;
+  background: #009e8c;
+}
+
+h1 {
+  font-size: 50px;
+  padding-left: 20px;
+  margin-top: 0;
+}
+
+h1::first-letter {
+  color: white;
+}
+
+.login-info {
+  font-size: 20px;
+  margin: 0 0 0 auto;
+  margin-top: 20px;
+  margin-right: 10px;
+  text-align: right;
+  color: white;
+}
+
+.logout-button {
+  height: 70px;
+  margin-right: 10px;
+  margin-left: 10px;
+  background: #009e8c; /* ボタン色 */
+  border: #009e8c;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease 0s;
+}
+.logout-button:hover{
+  opacity: 0.5;
 }
 </style>
