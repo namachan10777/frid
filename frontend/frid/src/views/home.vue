@@ -15,15 +15,24 @@
         />
       </p>
       <p>
+        <input v-model="food_name" placeholder="食材名" />
+      </p>
+      <p>
         <input v-model="exp_date" placeholder="消費期限" />
       </p>
       <button @click="addFoods">追加</button>
       <ul>
         <li v-for="item in list" :key="item.tapper_id" v-show="item.is_active">
-          タッパーID: {{ item.tapper_id }}, 消費期限: {{ item.exp_date }}
-          <button
+          <p>タッパーID:{{ item.tapper_id }}</p>
+          <p>食材名:{{ item.name }}</p>
+          <p>温度:{{ item.temperature }}</p>
+          <p>消費期限:{{ item.exp_date }}</p>
+          <input
+            type="image"
+            alt="delete"
             @click="deleteFoods(item.tapper_id)"
-          >削除</button>
+            src="https://i.imgur.com/sntj3EF.png"
+          />
         </li>
       </ul>
     </div>
@@ -51,6 +60,7 @@ export default {
       exp_date: "",
       tapper_id: null,
       list: [],
+      food_name: "",
       result: "",
       error: "",
       hide_qr: true
@@ -101,14 +111,19 @@ export default {
         .firestore()
         .collection("foods")
         .doc(String(this.tapper_id))
-        .set({
-          tapper_id: this.tapper_id,
-          exp_date: this.exp_date,
-          is_active: true,
-        }, { merge: true} );
+        .set(
+          {
+            tapper_id: this.tapper_id,
+            exp_date: this.exp_date,
+            is_active: true,
+            name: this.food_name
+          },
+          { merge: true }
+        );
 
       this.tapper_id = null;
       this.exp_date = "";
+      this.food_name = "";
     },
 
     // is_active -> falseにしてリスト非表示
@@ -117,10 +132,14 @@ export default {
         .firestore()
         .collection("foods")
         .doc(String(id))
-        .set({
-          exp_date: "",
-          is_active: false,
-        }, { merge: true} );
+        .set(
+          {
+            exp_date: "",
+            name: "",
+            is_active: false
+          },
+          { merge: true }
+        );
     }
   },
 
