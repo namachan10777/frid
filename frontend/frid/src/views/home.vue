@@ -3,38 +3,61 @@
     <div class="main" v-if="hide_qr">
       {{ user.displayName }} でログインしています
       <button @click="signOut">ログアウト</button>
-      <p>
-        <input v-model="tapper_id" placeholder="タッパーID" />
-        <input
-          type="image"
-          alt="qr"
-          src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
-          height="20"
-          width="20"
-          @click="qr_page"
-        />
-      </p>
-      <p>
-        <input v-model="food_name" placeholder="食材名" />
-      </p>
-      <p>
-        <input v-model="exp_date" placeholder="消費期限" />
-      </p>
-      <button @click="addFoods">追加</button>
-      <ul>
-        <li v-for="item in list" :key="item.tapper_id" v-show="item.is_active">
-          <p>タッパーID:{{ item.tapper_id }}</p>
-          <p>食材名:{{ item.name }}</p>
-          <p>温度:{{ item.temperature }}</p>
-          <p>消費期限:{{ item.exp_date }}</p>
+
+      <div class="input-form">
+        <div class="tapper">
+          <input type="text" v-model="tapper_id" placeholder="タッパーID" />
+          <i class="fas fa-box" aria-hidden="true"></i>
+          <div class="qr-reader">
           <input
             type="image"
-            alt="delete"
-            @click="deleteFoods(item.tapper_id)"
-            src="https://i.imgur.com/sntj3EF.png"
+            alt="qr"
+            src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
+            @click="qr_page"
+            width="25"
+            height="25"
           />
-        </li>
-      </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-form">
+        <input type="text" v-model="food_name" placeholder="食材名" />
+        <i class="fas fa-utensils" aria-hidden="true"></i>
+      </div>
+
+      <div class="input-form">
+        <div class="exp-date">
+          <input type="text" v-model="exp_date" placeholder="消費期限(yyyy/mm/dd)" />
+          <i class="far fa-calendar-alt" aria-hidden="true"></i>
+          <div class="add-button">
+            <input
+              type="image"
+              alt="add"
+              @click="addFoods"
+              src="https://i.imgur.com/PIrzJwO.png"
+              width="30"
+              height="30"
+            />
+          </div>
+        </div>
+      </div>
+
+      <li class="foods-list" v-for="item in list" :key="item.tapper_id" v-show="item.is_active">
+        <p>タッパーID:{{ item.tapper_id }}</p>
+        <p>食材名:{{ item.name }}</p>
+        <p>温度:{{ item.temperature }}</p>
+        <p>消費期限:{{ item.exp_date }}</p>
+        <input
+          type="image"
+          class="delete-button"
+          alt="delete"
+          @click="deleteFoods(item.tapper_id)"
+          src="https://i.imgur.com/sntj3EF.png"
+          width="30"
+          height="30"
+        />
+      </li>
     </div>
     <div class="qr" v-if="!hide_qr">
       <qrcode-stream @decode="onDecode" @init="onInit" />
@@ -68,7 +91,6 @@ export default {
   },
 
   methods: {
-
     onDecode(result) {
       this.tapper_id = result;
       this.hide_qr = true;
@@ -144,7 +166,6 @@ export default {
   },
 
   created: function() {
-
     const user = firebase.auth().currentUser;
 
     if (user) {
@@ -165,3 +186,66 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.foods-list {
+  background-color: aquamarine;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  margin-left: 0px;
+  display: inline-block;
+}
+
+.input-form {
+  position: relative;
+  width: 10%;
+}
+.input-form input[type="text"] {
+  font: 15px/24px sans-serif;
+  box-sizing: border-box;
+  margin: 8px 0;
+  padding: 0.3em;
+  transition: 0.3s;
+  border: 1px solid #1b2538;
+  border-radius: 4px;
+  outline: none;
+}
+.input-form input[type="text"]:focus {
+  border-color: #da3c41;
+}
+.input-form input[type="text"] {
+  padding-left: 40px;
+}
+.input-form i {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  padding: 9px 8px;
+  transition: 0.3s;
+  color: #aaaaaa;
+}
+.input-form input[type="text"]:focus + i {
+  color: #da3c41;
+}
+
+.input-form .tapper {
+  max-width: 190px;
+  display: inline-flex;
+}
+.input-form .exp-date{
+  min-width: 270px;
+  display: inline-flex;
+}
+
+.qr-reader {
+  padding-left: 10px;
+  padding-top: 13px;
+  width: 25px;
+  height: 25px;
+}
+
+.add-button{
+  padding-left: 10px;
+  padding-top: 10px;
+}
+</style>
