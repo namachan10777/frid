@@ -50,17 +50,11 @@ export default {
 }
 
 .login-button {
-  display: inline-block;
   padding: 0.4em 3em;
-  text-decoration: none;
-  background: #009e8c; /*ボタン色*/
+  /* text-decoration: none; */
+  background: #009e8c; /* ボタン色 */
   color: #fff;
   border-radius: 8px;
-}
-.login-button:active {
-  /*ボタンを押したとき*/
-  -webkit-transform: translateY(2px);
-  transform: translateY(2px); /*下に動く*/
-  border-bottom: none; /*線を消す*/
+  border-color: white;
 }
 </style>
