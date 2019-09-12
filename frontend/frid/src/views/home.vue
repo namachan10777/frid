@@ -136,19 +136,24 @@ export default {
 
     // firestore cloud に登録
     addFoods() {
-      firebase
-        .firestore()
-        .collection("foods")
-        .doc(String(this.tapper_id))
-        .set(
-          {
-            tapper_id: this.tapper_id,
-            exp_date: this.exp_date,
-            is_active: true,
-            name: this.food_name
-          },
-          { merge: true }
-        );
+      if (this.tapper_id != null && this.exp_date != "" && this.food_name != ""){
+        firebase
+          .firestore()
+          .collection("foods")
+          .doc(String(this.tapper_id))
+          .set(
+            {
+              tapper_id: this.tapper_id,
+              exp_date: this.exp_date,
+              is_active: true,
+              name: this.food_name
+            },
+            { merge: true }
+          );
+      }
+      else {
+        alert("入力に不備があります．")
+      }
 
       this.tapper_id = null;
       this.exp_date = "";
