@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <header>
-      <h1>frid</h1>
+      <img src="../assets/logo-header.png">
       <p class="login-info">
         <i class="fas fa-user"></i>
         {{ user.displayName }}
