@@ -11,10 +11,10 @@ admin.initializeApp();
 
 const firestore = admin.firestore();
 
-export const addMessage = functions.https.onRequest(async (request, response) => {
-	const original = request.query.text;
-	await firestore.collection("foods").doc("0").set({
-		temprature: original
+export const updateTemp = functions.https.onRequest(async (request, response) => {
+	console.log(request.body);
+	await firestore.collection("foods").doc(request.body.id).update({
+		temperature: request.body.temperature
 	});
 	response.sendStatus(200);
 });
