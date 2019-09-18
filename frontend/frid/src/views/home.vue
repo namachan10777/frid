@@ -10,7 +10,8 @@
         <button class="logout-button" @click="signOut">ログアウト</button>
       </div>
     </header>
-    <div class="main" v-if="hide_qr">
+
+    <div class="main" v-if="hide_qr && !hide_add">
       <div class="input-form">
         <div class="tapper">
           <input type="text" v-model="tapper_id" placeholder="タッパーID" />
@@ -49,7 +50,8 @@
           </div>
         </div>
       </div>
-
+    </div>
+    <div v-if="hide_add">
       <li class="foods-list" v-for="item in list" :key="item.tapper_id" v-show="item.is_active">
         <p>タッパーID:{{ item.tapper_id }}</p>
         <p>食材名:{{ item.name }}</p>
@@ -65,6 +67,9 @@
           height="30"
         />
       </li>
+    </div>
+    <div v-if="hide_add">
+      <button @click="page_add">追加</button>
     </div>
     <div class="qr" v-if="!hide_qr">
       <qrcode-stream @decode="onDecode" @init="onInit" />
@@ -93,11 +98,15 @@ export default {
       food_name: "",
       result: "",
       error: "",
-      hide_qr: true
+      hide_qr: true,
+      hide_add: true
     };
   },
 
   methods: {
+    page_add() {
+      this.hide_add = false;
+    },
     onDecode(result) {
       this.tapper_id = result;
       this.hide_qr = true;
@@ -136,7 +145,11 @@ export default {
 
     // firestore cloud に登録
     addFoods() {
-      if (this.tapper_id != null && this.exp_date != "" && this.food_name != ""){
+      if (
+        this.tapper_id != null &&
+        this.exp_date != "" &&
+        this.food_name != ""
+      ) {
         firebase
           .firestore()
           .collection("foods")
@@ -150,9 +163,9 @@ export default {
             },
             { merge: true }
           );
-      }
-      else {
-        alert("入力に不備があります．")
+        this.hide_add = true;
+      } else {
+        alert("入力に不備があります．");
       }
 
       this.tapper_id = null;
@@ -282,6 +295,7 @@ h1::first-letter {
 }
 
 .login-info {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 20px;
   margin: 0 0 0 auto;
   margin-top: 20px;
@@ -291,6 +305,7 @@ h1::first-letter {
 }
 
 .logout-button {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   height: 70px;
   margin-right: 10px;
   margin-left: 10px;
