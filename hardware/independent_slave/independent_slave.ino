@@ -2,9 +2,10 @@
 #include <HTTPClient.h>
 
 const char* SSID = "TestAP";
-const char* PASSWORD = "";
+const char* PASSWORD = "weak_pass";
 const char* ENDPOINT = "https://us-central1-frid-vue.cloudfunctions.net/updateTemp";
 const int INTERVAL = 5 * 60 * 1000;
+const int ADC_INPUT = 34;
 
 const char* DEVICE_ID = "0";
 
@@ -16,6 +17,8 @@ const char* DEVICE_ID = "0";
  */
 
 void setup() {
+  WiFi.disconnect(true);
+  delay(1000);
   Serial.begin(115200);
   Serial.print("Attempting to connect");
   while(WiFi.status() != WL_CONNECTED) {
@@ -25,6 +28,7 @@ void setup() {
   }
   Serial.println("connected: ");
   Serial.print(WiFi.localIP());
+  pinMode(INPUT, ADC_INPUT);
 }
 
 String buildBody(int id, float temp) {
@@ -37,8 +41,9 @@ String buildBody(int id, float temp) {
 }
 
 void loop() {
-  float voltage = analogRead(4) * 3.3f / 4096.0f;
-  float temprature = (voltage - 0.6) * 100.0f;
+  Serial.println(analogRead(ADC_INPUT));
+  float voltage = analogRead(ADC_INPUT) * 3.3f / 4096.0f;
+  float temperature = (voltage - 0.6) * 100.0f;
 
   HTTPClient http;
   http.begin(ENDPOINT);
@@ -47,8 +52,19 @@ void loop() {
   auto httpResponseCode = http.POST(body);
   http.end();
 
+  /*
+   * Try this method in below issue, if Arduino failed to sene POST header.
+   * https://github.com/espressif/arduino-esp32/issues/2670#issuecomment-483289542
+   */
+  Serial.print("temp: ");
+  Serial.println(voltage);
+  Serial.println(temperature);
   Serial.print("http status code: ");
-  Serial.println(httpResponseCode);
-
+  if (httpResponseCode < 0) {
+    Serial.println(http.errorToString(httpResponseCode));
+  }
+  else {
+    Serial.println(httpResponseCode);
+  }
   delay(INTERVAL);
 }
