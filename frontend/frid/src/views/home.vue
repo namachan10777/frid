@@ -1,7 +1,9 @@
 <template>
   <div class="home">
     <header>
-      <img src="../assets/logo-header.png">
+      <div @click="jump_home">
+        <a href="#/home"><img src="../assets/logo-header.png" /></a>
+      </div>
       <p class="login-info">
         <i class="fas fa-user"></i>
         {{ user.displayName }}
@@ -11,7 +13,7 @@
       </div>
     </header>
 
-<div class="main" v-if="hide_qr && !hide_add">
+    <div class="main" v-if="hide_qr && !hide_add">
       <div class="input-form">
         <div class="tapper">
           <input type="text" v-model="tapper_id" placeholder="タッパーID" />
@@ -50,7 +52,12 @@
 
     <div v-if="hide_add">
       <transition-group name="el-fade-linear">
-        <li class="foods-list" v-for="item in list" :key="item.tapper_id" v-show="item.is_active && item.temperature >= 0">
+        <li
+          class="foods-list"
+          v-for="item in list"
+          :key="item.tapper_id"
+          v-show="item.is_active && item.temperature >= 0"
+        >
           <p>タッパーID:{{ item.tapper_id }}</p>
           <p>食材名:{{ item.name }}</p>
           <p>温度:{{ item.temperature }}</p>
@@ -106,6 +113,10 @@ export default {
   },
 
   methods: {
+    jump_home() {
+      this.hide_qr = true;
+      this.hide_add = true;
+    },
     page_add() {
       // const url = "https://hooks.slack.com/services/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";
       // const data = {
@@ -204,10 +215,6 @@ export default {
           { merge: true }
         );
     },
-    jump_home(){
-      
-    }
-
   },
 
   created: function() {
