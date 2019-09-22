@@ -11,7 +11,7 @@
       </div>
     </header>
 
-    <div class="main" v-if="hide_qr && !hide_add">
+<div class="main" v-if="hide_qr && !hide_add">
       <div class="input-form">
         <div class="tapper">
           <input type="text" v-model="tapper_id" placeholder="タッパーID" />
@@ -34,42 +34,42 @@
         <i class="fas fa-utensils" aria-hidden="true"></i>
       </div>
 
-      <div class="input-form">
-        <div class="exp-date">
-          <input type="text" v-model="exp_date" placeholder="消費期限(yyyy/mm/dd)" />
-          <i class="far fa-calendar-alt" aria-hidden="true"></i>
-          <div class="add-button">
-            <input
-              type="image"
-              alt="add"
-              @click="addFoods"
-              src="https://i.imgur.com/PIrzJwO.png"
-              width="30"
-              height="30"
-            />
-          </div>
-        </div>
+      <div class="exp-date">
+        <el-date-picker
+          v-model="exp_date"
+          size="large"
+          value-format="yyyy/MM/dd"
+          type="date"
+          placeholder="消費期限"
+        ></el-date-picker>
+      </div>
+      <div class="add-button">
+        <el-button @click="addFoods" type="primary" icon="el-icon-check" round></el-button>
       </div>
     </div>
+
     <div v-if="hide_add">
-      <li class="foods-list" v-for="item in list" :key="item.tapper_id" v-show="item.is_active">
-        <p>タッパーID:{{ item.tapper_id }}</p>
-        <p>食材名:{{ item.name }}</p>
-        <p>温度:{{ item.temperature }}</p>
-        <p>消費期限:{{ item.exp_date }}</p>
-        <input
-          type="image"
-          class="delete-button"
-          alt="delete"
-          @click="deleteFoods(item.tapper_id)"
-          src="https://i.imgur.com/sntj3EF.png"
-          width="30"
-          height="30"
-        />
-      </li>
+      <transition-group name="el-fade-linear">
+        <li class="foods-list" v-for="item in list" :key="item.tapper_id" v-show="item.is_active && item.temperature >= 0">
+          <p>タッパーID:{{ item.tapper_id }}</p>
+          <p>食材名:{{ item.name }}</p>
+          <p>温度:{{ item.temperature }}</p>
+          <p>消費期限:{{ item.exp_date }}</p>
+          <input
+            type="image"
+            class="delete-button"
+            alt="delete"
+            @click="deleteFoods(item.tapper_id)"
+            src="https://i.imgur.com/sntj3EF.png"
+            width="30"
+            height="30"
+          />
+        </li>
+      </transition-group>
     </div>
+
     <div v-if="hide_add">
-      <button @click="page_add">追加</button>
+      <a href="#/home" @click="page_add" class="page-add">+</a>
     </div>
     <div class="qr" v-if="!hide_qr">
       <qrcode-stream @decode="onDecode" @init="onInit" />
@@ -83,6 +83,8 @@
 <script>
 import firebase from "firebase";
 import { QrcodeStream } from "vue-qrcode-reader";
+import axios from "axios";
+import moment from "moment";
 
 export default {
   name: "home",
@@ -105,6 +107,20 @@ export default {
 
   methods: {
     page_add() {
+      // const url = "https://hooks.slack.com/services/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";
+      // const data = {
+      //   text: String(this.hide_qr)
+      // };
+      // axios.post(url, JSON.stringify(data), {
+      //   withCredentials: false,
+      //   transformRequest: [
+      //     (data, headers) => {
+      //       delete headers.post["Content-Type"];
+      //       return data;
+      //     }
+      //   ]
+      // });
+      // axios.post('https://hooks.slack.com/services/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', {text: "hoge"})
       this.hide_add = false;
     },
     onDecode(result) {
@@ -187,7 +203,11 @@ export default {
           },
           { merge: true }
         );
+    },
+    jump_home(){
+      
     }
+
   },
 
   created: function() {
@@ -213,19 +233,65 @@ export default {
 </script>
 
 <style scoped>
+.main {
+  padding: 30px 20px 60px 35px;
+  border-radius: 15px;
+  max-width: 300px;
+  margin: 0 auto;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
 .foods-list {
+  font-weight: bold;
   border-radius: 15px;
   width: 300px;
   text-align: center;
-  background-color: aquamarine;
+  background-color: #53d6c7;
   margin: 20px;
   display: inline-block;
 }
 
 .input-form {
   position: relative;
+  /* width: 10%; */
+  /* margin-left: 20px; */
+}
+
+.qr {
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.page-add {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
   width: 10%;
   margin-left: 20px;
+  font-size: 30px;
+  display: inline-block;
+  text-decoration: none;
+  background: #009e8c;
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  border-radius: 50%;
+  text-align: center;
+  font-weight: bold;
+  overflow: hidden;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.29);
+  border-bottom: solid 3px #009e8c;
+  transition: 0.4s;
+}
+.page-add:active {
+  -webkit-transform: translateY(2px);
+  transform: translateY(2px);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.15);
+  border-bottom: none;
+}
+
+input {
+  max-width: 220px;
 }
 
 .input-form input[type="text"] {
@@ -260,9 +326,9 @@ export default {
   max-width: 190px;
   display: inline-flex;
 }
-.input-form .exp-date {
-  min-width: 270px;
-  display: inline-flex;
+
+.exp-date {
+  margin-top: 20px;
 }
 
 .qr-reader {
@@ -273,8 +339,9 @@ export default {
 }
 
 .add-button {
-  padding-left: 10px;
-  padding-top: 10px;
+  float: right;
+  margin-top: 10px;
+  margin-right: 5px;
 }
 
 header {
