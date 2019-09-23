@@ -2,7 +2,9 @@
   <div class="home">
     <header>
       <div @click="jump_home">
-        <a href="#/home"><img src="../assets/logo-header.png" /></a>
+        <a href="#/home">
+          <img src="../assets/logo-header.png" />
+        </a>
       </div>
       <p class="login-info">
         <i class="fas fa-user"></i>
@@ -40,7 +42,7 @@
         <el-date-picker
           v-model="exp_date"
           size="large"
-          value-format="yyyy/MM/dd"
+          value-format="yyyy-MM-dd"
           type="date"
           placeholder="消費期限"
         ></el-date-picker>
@@ -51,28 +53,24 @@
     </div>
 
     <div v-if="hide_add">
-      <transition-group name="el-fade-linear">
-        <li
-          class="foods-list"
-          v-for="item in list"
-          :key="item.tapper_id"
-          v-show="item.is_active && item.temperature >= 0"
-        >
-          <p>タッパーID:{{ item.tapper_id }}</p>
-          <p>食材名:{{ item.name }}</p>
-          <p>温度:{{ item.temperature }}</p>
-          <p>消費期限:{{ item.exp_date }}</p>
-          <input
-            type="image"
-            class="delete-button"
-            alt="delete"
-            @click="deleteFoods(item.tapper_id)"
-            src="https://i.imgur.com/sntj3EF.png"
-            width="30"
-            height="30"
-          />
-        </li>
-      </transition-group>
+      <li
+        class="foods-list"
+        v-for="item in list"
+        :key="item.tapper_id"
+        v-show="item.is_active && item.temperature >= 0"
+      >
+        <p>タッパーID:{{ item.tapper_id }}</p>
+        <p>食材名:{{ item.name }}</p>
+        <p>温度:{{ item.temperature }}</p>
+        <p>消費期限:{{ item.exp_date }}</p>
+        <el-button
+          @click="deleteFoods(item.tapper_id)"
+          class="delete-button"
+          type="info"
+          icon="el-icon-delete"
+          circle
+        ></el-button>
+      </li>
     </div>
 
     <div v-if="hide_add">
@@ -82,6 +80,7 @@
       <qrcode-stream @decode="onDecode" @init="onInit" />
       {{ error }}
       {{ result }}
+      <el-button class="qr-cancel" @click="qr_cancel" type="info" plain>Cancel</el-button>
     </div>
   </div>
 </template>
@@ -108,30 +107,33 @@ export default {
       result: "",
       error: "",
       hide_qr: true,
-      hide_add: true
+      hide_add: true,
+      temp_counter: [0, 0, 0]
     };
   },
 
   methods: {
+    post_to_slack(message) {
+      const url =
+        "https://hooks.slack.com/services/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";
+      const data = {
+        text: message
+      };
+      axios.post(url, JSON.stringify(data), {
+        withCredentials: false,
+        transformRequest: [
+          (data, headers) => {
+            delete headers.post["Content-Type"];
+            return data;
+          }
+        ]
+      });
+    },
     jump_home() {
       this.hide_qr = true;
       this.hide_add = true;
     },
     page_add() {
-      // const url = "https://hooks.slack.com/services/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";
-      // const data = {
-      //   text: String(this.hide_qr)
-      // };
-      // axios.post(url, JSON.stringify(data), {
-      //   withCredentials: false,
-      //   transformRequest: [
-      //     (data, headers) => {
-      //       delete headers.post["Content-Type"];
-      //       return data;
-      //     }
-      //   ]
-      // });
-      // axios.post('https://hooks.slack.com/services/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', {text: "hoge"})
       this.hide_add = false;
     },
     onDecode(result) {
@@ -164,6 +166,10 @@ export default {
       this.hide_qr = false;
     },
 
+    // QR読取りキャンセル
+    qr_cancel(){
+      this.hide_qr = true;
+    },
     // ログアウト
     signOut() {
       firebase.auth().signOut();
@@ -191,30 +197,51 @@ export default {
             { merge: true }
           );
         this.hide_add = true;
-      } else {
-        alert("入力に不備があります．");
-      }
+        this.$message({
+          message: "食材が追加されました．",
+          type: "success"
+        });
 
-      this.tapper_id = null;
-      this.exp_date = "";
-      this.food_name = "";
+        this.tapper_id = null;
+        this.exp_date = "";
+        this.food_name = "";
+      } else {
+        this.$message.error("入力に不備があります．");
+      }
     },
 
     // is_active -> falseにしてリスト非表示
     deleteFoods(id) {
-      firebase
-        .firestore()
-        .collection("foods")
-        .doc(String(id))
-        .set(
-          {
-            exp_date: "",
-            name: "",
-            is_active: false
-          },
-          { merge: true }
-        );
-    },
+      this.$confirm("この食材を削除しますか？", "Warning", {
+        confirmButtonText: "OK",
+        cancelButtonText: "Cancel",
+        type: "warning"
+      })
+        .then(() => {
+          firebase
+            .firestore()
+            .collection("foods")
+            .doc(String(id))
+            .set(
+              {
+                exp_date: "",
+                name: "",
+                is_active: false
+              },
+              { merge: true }
+            );
+          this.$message({
+            type: "success",
+            message: "Delete completed"
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "Delete canceled"
+          });
+        });
+    }
   },
 
   created: function() {
@@ -234,6 +261,14 @@ export default {
         let buff = [];
         ss.forEach(doc => buff.push(doc.data()));
         this.list = buff;
+
+        // 温度管理
+        for (var i = 0; i < buff.length - 1; i++) {
+          // console.log(buff[i].temperature);
+          if (buff[i].temperature > 10) this.temp_counter[i]++;
+        }
+
+        // console.log(this.temp_counter);
       });
   }
 };
@@ -264,10 +299,14 @@ export default {
 }
 
 .qr {
-  max-width: 200px;
+  width: 320px;
+  /* max-width: 100vw; */
   margin: 0 auto;
 }
 
+.qr-cancel{
+  margin-top: 0.5vh;
+}
 .page-add {
   position: absolute;
   right: 20px;
@@ -351,6 +390,9 @@ input {
   margin-right: 5px;
 }
 
+.delete-button {
+  margin-bottom: 1vh;
+}
 header {
   width: 100%;
   height: 70px;
@@ -389,7 +431,7 @@ h1::first-letter {
   cursor: pointer;
   transition: all 0.3s ease 0s;
 }
-.logout-button:hover{
+.logout-button:hover {
   opacity: 0.5;
 }
 </style>
