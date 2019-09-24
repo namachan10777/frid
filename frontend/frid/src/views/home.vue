@@ -15,42 +15,43 @@
       </div>
     </header>
 
-    <div class="main" v-if="hide_qr && !hide_add">
-      <div class="input-form">
-        <div class="tapper">
-          <input type="text" v-model="tapper_id" placeholder="タッパーID" />
-          <i class="fas fa-box" aria-hidden="true"></i>
-          <div class="qr-reader">
-            <input
-              type="image"
-              alt="qr"
-              src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
-              @click="qr_page"
-              width="25"
-              height="25"
-            />
+      <div class="main" v-if="hide_qr && !hide_add">
+        <div class="input-form">
+          <div class="tapper">
+            <input type="text" v-model="tapper_id" placeholder="タッパーID" />
+            <i class="fas fa-box" aria-hidden="true"></i>
+            <div class="qr-reader">
+              <input
+                type="image"
+                alt="qr"
+                src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
+                @click="qr_page"
+                width="25"
+                height="25"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="input-form">
-        <input type="text" v-model="food_name" placeholder="食材名" />
-        <i class="fas fa-utensils" aria-hidden="true"></i>
-      </div>
+        <div class="input-form">
+          <input type="text" v-model="food_name" placeholder="食材名" />
+          <i class="fas fa-utensils" aria-hidden="true"></i>
+        </div>
 
-      <div class="exp-date">
-        <el-date-picker
-          v-model="exp_date"
-          size="large"
-          value-format="yyyy-MM-dd"
-          type="date"
-          placeholder="消費期限"
-        ></el-date-picker>
+        <div class="exp-date">
+          <el-date-picker
+            v-model="exp_date"
+            size="large"
+            value-format="yyyy-MM-dd"
+            type="date"
+            placeholder="消費期限"
+          ></el-date-picker>
+        </div>
+        <div class="add-button">
+          <el-button @click="cancel_add" type="danger" icon="el-icon-close" round></el-button>
+          <el-button @click="addFoods" type="primary" icon="el-icon-check" round></el-button>
+        </div>
       </div>
-      <div class="add-button">
-        <el-button @click="addFoods" type="primary" icon="el-icon-check" round></el-button>
-      </div>
-    </div>
 
     <div v-if="hide_add">
       <li
@@ -73,9 +74,11 @@
       </li>
     </div>
 
+    <transition name="el-fade-in">
     <div v-if="hide_add">
       <a href="#/home" @click="page_add" class="page-add">+</a>
     </div>
+    </transition>
     <div class="qr" v-if="!hide_qr">
       <qrcode-stream @decode="onDecode" @init="onInit" />
       {{ error }}
@@ -210,6 +213,15 @@ export default {
       }
     },
 
+    cancel_add() {
+      this.$message("入力がキャンセルされました．");
+
+      this.hide_add = true;
+
+      this.tapper_id = null;
+      this.exp_date = "";
+      this.food_name = "";
+    },
     // is_active -> falseにしてリスト非表示
     deleteFoods(id) {
       this.$confirm("この食材を削除しますか？", "Warning", {
