@@ -15,43 +15,43 @@
       </div>
     </header>
 
-      <div class="main" v-if="hide_qr && !hide_add">
-        <div class="input-form">
-          <div class="tapper">
-            <input type="text" v-model="tapper_id" placeholder="タッパーID" />
-            <i class="fas fa-box" aria-hidden="true"></i>
-            <div class="qr-reader">
-              <input
-                type="image"
-                alt="qr"
-                src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
-                @click="qr_page"
-                width="25"
-                height="25"
-              />
-            </div>
+    <div class="main" v-if="hide_qr && !hide_add">
+      <div class="input-form">
+        <div class="tapper">
+          <input type="text" v-model="tapper_id" placeholder="タッパーID" />
+          <i class="fas fa-box" aria-hidden="true"></i>
+          <div class="qr-reader">
+            <input
+              type="image"
+              alt="qr"
+              src="https://dab1nmslvvntp.cloudfront.net/wp-content/uploads/2017/07/1499401426qr_icon.svg"
+              @click="qr_page"
+              width="25"
+              height="25"
+            />
           </div>
         </div>
-
-        <div class="input-form">
-          <input type="text" v-model="food_name" placeholder="食材名" />
-          <i class="fas fa-utensils" aria-hidden="true"></i>
-        </div>
-
-        <div class="exp-date">
-          <el-date-picker
-            v-model="exp_date"
-            size="large"
-            value-format="yyyy-MM-dd"
-            type="date"
-            placeholder="消費期限"
-          ></el-date-picker>
-        </div>
-        <div class="add-button">
-          <el-button @click="cancel_add" type="danger" icon="el-icon-close" round></el-button>
-          <el-button @click="addFoods" type="primary" icon="el-icon-check" round></el-button>
-        </div>
       </div>
+
+      <div class="input-form">
+        <input type="text" v-model="food_name" placeholder="食材名" />
+        <i class="fas fa-utensils" aria-hidden="true"></i>
+      </div>
+
+      <div class="exp-date">
+        <el-date-picker
+          v-model="exp_date"
+          size="large"
+          value-format="yyyy-MM-dd"
+          type="date"
+          placeholder="消費期限"
+        ></el-date-picker>
+      </div>
+      <div class="add-button">
+        <el-button @click="cancel_add" type="danger" icon="el-icon-close" round></el-button>
+        <el-button @click="addFoods" type="primary" icon="el-icon-check" round></el-button>
+      </div>
+    </div>
 
     <div v-if="hide_add">
       <li
@@ -60,24 +60,25 @@
         :key="item.tapper_id"
         v-show="item.is_active && item.temperature >= 0"
       >
-        <p>タッパーID:{{ item.tapper_id }}</p>
-        <p>食材名:{{ item.name }}</p>
-        <p>温度:{{ item.temperature }}</p>
-        <p>消費期限:{{ item.exp_date }}</p>
-        <el-button
-          @click="deleteFoods(item.tapper_id)"
-          class="delete-button"
-          type="info"
-          icon="el-icon-delete"
-          circle
-        ></el-button>
+        <el-card class="card" shadow="hover">
+          <div slot="header" class="clearfix">
+            <span>{{ item.name }}</span>
+            <el-button
+              style="float: right; padding: 3px 0"
+              type="text"
+              @click="deleteFoods(item.tapper_id)"
+            >Delete</el-button>
+          </div>
+          <p class="temp">温度: {{ item.temperature }} ℃</p>
+          <p>消費期限: {{ item.exp_date }}</p>
+        </el-card>
       </li>
     </div>
 
     <transition name="el-fade-in">
-    <div v-if="hide_add">
-      <a href="#/home" @click="page_add" class="page-add">+</a>
-    </div>
+      <div v-if="hide_add">
+        <a href="#/home" @click="page_add" class="page-add">+</a>
+      </div>
     </transition>
     <div class="qr" v-if="!hide_qr">
       <qrcode-stream @decode="onDecode" @init="onInit" />
@@ -111,7 +112,8 @@ export default {
       error: "",
       hide_qr: true,
       hide_add: true,
-      temp_counter: [0, 0, 0]
+      temp_counter: 0,
+      is_exp: false
     };
   },
 
@@ -170,7 +172,7 @@ export default {
     },
 
     // QR読取りキャンセル
-    qr_cancel(){
+    qr_cancel() {
       this.hide_qr = true;
     },
     // ログアウト
@@ -200,10 +202,17 @@ export default {
             { merge: true }
           );
         this.hide_add = true;
-        this.$message({
-          message: "食材が追加されました．",
-          type: "success"
-        });
+        if (this.list[this.tapper_id].name != "") {
+          this.$message({
+            message: "食材情報が上書きされました．",
+            type: "success"
+          });
+        } else {
+          this.$message({
+            message: "食材が追加されました．",
+            type: "success"
+          });
+        }
 
         this.tapper_id = null;
         this.exp_date = "";
@@ -256,7 +265,7 @@ export default {
     }
   },
 
-  created: function() {
+  created() {
     const user = firebase.auth().currentUser;
 
     if (user) {
@@ -275,12 +284,38 @@ export default {
         this.list = buff;
 
         // 温度管理
-        for (var i = 0; i < buff.length - 1; i++) {
-          // console.log(buff[i].temperature);
-          if (buff[i].temperature > 10) this.temp_counter[i]++;
-        }
+        if (this.list[0].is_active) {
+          if (this.list[0].temperature > 10) this.temp_counter++;
+          else this.temp_counter = 0;
 
-        // console.log(this.temp_counter);
+          if (this.temp_counter >= 10) {
+            var flag = true;
+            this.temp_counter = 0;
+          }
+
+          if (flag) {
+            var notify = String(this.list[0].name) + ' が冷蔵庫から出しっぱなしです．'
+            this.post_to_slack(notify);
+            flag = false;
+          }
+
+            var now = moment();
+            var exp = moment(this.list[0].exp_date);
+
+            console.log(exp.diff(now, "days"));
+
+            var tmp = false
+            if(exp.diff(now,'days') <= 2){
+              tmp = true
+            }
+            
+            if(!this.is_exp && tmp){
+              var notify = String(this.list[0].name) + ' の消費期限が近いです．'
+              this.post_to_slack(notify)
+              this.is_exp = true
+            }
+              
+        }
       });
   }
 };
@@ -294,14 +329,25 @@ export default {
   margin: 0 auto;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
+
+li {
+  list-style: none;
+}
 .foods-list {
-  font-weight: bold;
-  border-radius: 15px;
-  width: 300px;
-  text-align: center;
-  background-color: #53d6c7;
-  margin: 20px;
-  display: inline-block;
+  /* font-weight: bold; */
+  /* width: 300px; */
+  /* text-align: center; */
+  /* background-color: #53d6c7; */
+  margin: 0.8vw;
+  /* display: inline-block; */
+}
+
+.foods-list p {
+  margin: 1vh;
+}
+
+.card {
+  border-radius: 20px;
 }
 
 .input-form {
@@ -316,7 +362,7 @@ export default {
   margin: 0 auto;
 }
 
-.qr-cancel{
+.qr-cancel {
   margin-top: 0.5vh;
 }
 .page-add {
@@ -400,6 +446,9 @@ input {
   float: right;
   margin-top: 10px;
   margin-right: 5px;
+}
+.add-button:focus-visible {
+  outline: none;
 }
 
 .delete-button {
