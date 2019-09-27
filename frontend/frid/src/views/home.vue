@@ -60,7 +60,7 @@
         :key="item.tapper_id"
         v-show="item.is_active && item.temperature >= 0"
       >
-        <el-card class="card" shadow="hover">
+        <el-card class="card" v-bind:class="{ warn: food_warn[item.tapper_id] }" shadow="hover">
           <div slot="header" class="clearfix">
             <span>{{ item.name }}</span>
             <el-button
@@ -113,10 +113,10 @@ export default {
       hide_qr: true,
       hide_add: true,
       temp_counter: 0,
-      is_exp: false
+      is_exp: false,
+      food_warn: [false, false, false]
     };
   },
-
   methods: {
     post_to_slack(message) {
       const url =
@@ -251,6 +251,7 @@ export default {
               },
               { merge: true }
             );
+          this.food_warn[0] = false;
           this.$message({
             type: "success",
             message: "Delete completed"
@@ -266,12 +267,10 @@ export default {
   },
 
   created() {
-    const user = firebase.auth().currentUser;
+    var user = firebase.auth().currentUser;
 
     if (user) {
       this.user = user;
-    } else {
-      this.$router.push("/signin");
     }
 
     // firestore からデータを取得
@@ -294,27 +293,28 @@ export default {
           }
 
           if (flag) {
-            var notify = String(this.list[0].name) + ' が冷蔵庫から出しっぱなしです．'
+            var notify =
+              String(this.list[0].name) + " が冷蔵庫から出しっぱなしです．";
             this.post_to_slack(notify);
             flag = false;
           }
 
-            var now = moment();
-            var exp = moment(this.list[0].exp_date);
+          var now = moment();
+          var exp = moment(this.list[0].exp_date);
 
-            console.log(exp.diff(now, "days"));
+          // console.log(exp.diff(now, "days"));
 
-            var tmp = false
-            if(exp.diff(now,'days') <= 2){
-              tmp = true
-            }
-            
-            if(!this.is_exp && tmp){
-              var notify = String(this.list[0].name) + ' の消費期限が近いです．'
-              this.post_to_slack(notify)
-              this.is_exp = true
-            }
-              
+          var tmp = false;
+          if (exp.diff(now, "days") <= 3) {
+            tmp = true;
+          }
+
+          if (!this.is_exp && tmp) {
+            var notify = String(this.list[0].name) + " の消費期限が近いです．";
+            this.post_to_slack(notify);
+            this.is_exp = true;
+            this.food_warn[0] = true;
+          }
         }
       });
   }
@@ -348,6 +348,10 @@ li {
 
 .card {
   border-radius: 20px;
+}
+
+.warn {
+  background-color: #f5cd60;
 }
 
 .input-form {
