@@ -44,14 +44,14 @@ export default {
 }
 
 .login {
-  padding-top: 40px;
-  max-width: 140px;
+  padding-top: 30px;
+  max-width: 134px;
   margin: 0 auto;
 }
 
 .login-button {
-  padding: 0.4em 3em;
-  /* text-decoration: none; */
+  padding: 0.5em 3em;
+  border: none;
   background: #009e8c; /* ボタン色 */
   color: #fff;
   border-radius: 8px;
