@@ -7,7 +7,7 @@
         </a>
       </div>
       <p class="login-info">
-        <i class="fas fa-user"></i>
+        <i class="el-icon-user"></i>
         {{ user.displayName }}
       </p>
       <div>
@@ -19,7 +19,7 @@
       <div class="input-form">
         <div class="tapper">
           <input type="text" v-model="tapper_id" placeholder="タッパーID" />
-          <i class="fas fa-box" aria-hidden="true"></i>
+          <i class="el-icon-box"></i>
           <div class="qr-reader">
             <input
               type="image"
@@ -35,7 +35,7 @@
 
       <div class="input-form">
         <input type="text" v-model="food_name" placeholder="食材名" />
-        <i class="fas fa-utensils" aria-hidden="true"></i>
+        <i class="el-icon-knife-fork"></i>
       </div>
 
       <div class="exp-date">
@@ -60,7 +60,11 @@
         :key="item.tapper_id"
         v-show="item.is_active && item.temperature >= 0"
       >
-        <el-card class="card" v-bind:class="{ warn: food_warn[item.tapper_id] }" shadow="hover">
+        <el-card
+          class="card"
+          v-bind:class="{ exp_warn: food_warn[0], temp_warn: food_warn[1] }"
+          shadow="hover"
+        >
           <div slot="header" class="clearfix">
             <span>{{ item.name }}</span>
             <el-button
@@ -114,13 +118,14 @@ export default {
       hide_add: true,
       temp_counter: 0,
       is_exp: false,
-      food_warn: [false, false, false]
+      food_warn: [false, false, false],
+      flag: false
     };
   },
   methods: {
     post_to_slack(message) {
       const url =
-        "https://hooks.slack.com/services/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";
+        "https://hooks.slack.com/services/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";
       const data = {
         text: message
       };
@@ -284,34 +289,41 @@ export default {
 
         // 温度管理
         if (this.list[0].is_active) {
-          if (this.list[0].temperature > 10) this.temp_counter++;
-          else this.temp_counter = 0;
+          if (this.list[0].temperature > 18) {
+            this.temp_counter++;
+          } else {
+            this.temp_counter = 0;
+            this.food_warn[1] = false;
+          }
 
-          if (this.temp_counter >= 10) {
-            var flag = true;
+          if (this.temp_counter >= 5) {
+            this.flag = true;
             this.temp_counter = 0;
           }
 
-          if (flag) {
-            var notify =
+          if (this.flag) {
+            var temp_notify =
               String(this.list[0].name) + " が冷蔵庫から出しっぱなしです．";
-            this.post_to_slack(notify);
-            flag = false;
+            this.post_to_slack(temp_notify);
+            this.flag = false;
+            this.food_warn[1] = true;
           }
 
           var now = moment();
           var exp = moment(this.list[0].exp_date);
 
-          // console.log(exp.diff(now, "days"));
-
           var tmp = false;
-          if (exp.diff(now, "days") <= 3) {
+          if (exp.diff(now, "days") + 1 <= 2) {
             tmp = true;
           }
 
           if (!this.is_exp && tmp) {
-            var notify = String(this.list[0].name) + " の消費期限が近いです．";
-            this.post_to_slack(notify);
+            var exp_notify =
+              String(this.list[0].name) +
+              " の消費期限が近づいています．\n消費期限は " +
+              String(this.list[0].exp_date) +
+              " です．";
+            this.post_to_slack(exp_notify);
             this.is_exp = true;
             this.food_warn[0] = true;
           }
@@ -322,6 +334,7 @@ export default {
 </script>
 
 <style scoped>
+/* 食材追加画面 */
 .main {
   padding: 30px 20px 60px 35px;
   border-radius: 15px;
@@ -330,78 +343,33 @@ export default {
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
+/* 食材リストのデザイン */
 li {
   list-style: none;
 }
-.foods-list {
-  /* font-weight: bold; */
-  /* width: 300px; */
-  /* text-align: center; */
-  /* background-color: #53d6c7; */
+.card {
   margin: 0.8vw;
-  /* display: inline-block; */
+  border-radius: 20px;
 }
-
-.foods-list p {
+.card p {
   margin: 1vh;
 }
 
-.card {
-  border-radius: 20px;
-}
-
-.warn {
+/* 食材リストの色を変更 */
+.exp_warn {
   background-color: #f5cd60;
 }
+.temp_warn {
+  background-color: #f56a60;
+}
 
+/* タッパーID，食材名入力フォーム */
 .input-form {
   position: relative;
-  /* width: 10%; */
-  /* margin-left: 20px; */
 }
-
-.qr {
-  width: 320px;
-  /* max-width: 100vw; */
-  margin: 0 auto;
-}
-
-.qr-cancel {
-  margin-top: 0.5vh;
-}
-.page-add {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: 10%;
-  margin-left: 20px;
-  font-size: 30px;
-  display: inline-block;
-  text-decoration: none;
-  background: #009e8c;
-  color: #fff;
-  width: 60px;
-  height: 60px;
-  line-height: 60px;
-  border-radius: 50%;
-  text-align: center;
-  font-weight: bold;
-  overflow: hidden;
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.29);
-  border-bottom: solid 3px #009e8c;
-  transition: 0.4s;
-}
-.page-add:active {
-  -webkit-transform: translateY(2px);
-  transform: translateY(2px);
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.15);
-  border-bottom: none;
-}
-
 input {
   max-width: 220px;
 }
-
 .input-form input[type="text"] {
   font: 15px/24px sans-serif;
   box-sizing: border-box;
@@ -429,16 +397,11 @@ input {
 .input-form input[type="text"]:focus + i {
   color: #da3c41;
 }
-
 .input-form .tapper {
   max-width: 190px;
   display: inline-flex;
 }
-
-.exp-date {
-  margin-top: 20px;
-}
-
+/* QRコードアイコン */
 .qr-reader {
   padding-left: 10px;
   padding-top: 13px;
@@ -446,6 +409,48 @@ input {
   height: 25px;
 }
 
+/* QR読み込み画面 */
+.qr {
+  width: 320px;
+  margin: 0 auto;
+}
+.qr-cancel {
+  margin-top: 0.5vh;
+}
+
+/* 食材追加ボタン ⊕ */
+.page-add {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  margin-left: 20px;
+  font-size: 30px;
+  text-decoration: none;
+  background: #009e8c;
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  border-radius: 50%;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.29);
+  border-bottom: solid 3px #009e8c;
+  transition: 0.4s;
+}
+.page-add:active {
+  -webkit-transform: translateY(2px);
+  transform: translateY(2px);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.15);
+  border-bottom: none;
+}
+
+/* 消費期限のDatePicker */
+.exp-date {
+  margin-top: 10px;
+}
+
+/* 食材追加確定ボタン */
 .add-button {
   float: right;
   margin-top: 10px;
@@ -455,26 +460,13 @@ input {
   outline: none;
 }
 
-.delete-button {
-  margin-bottom: 1vh;
-}
+/* ヘッダー */
 header {
   width: 100%;
   height: 70px;
   display: inline-flex;
   background: #009e8c;
 }
-
-h1 {
-  font-size: 50px;
-  padding-left: 20px;
-  margin-top: 0;
-}
-
-h1::first-letter {
-  color: white;
-}
-
 .login-info {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 20px;
@@ -484,7 +476,6 @@ h1::first-letter {
   text-align: right;
   color: white;
 }
-
 .logout-button {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   height: 70px;
