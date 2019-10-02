@@ -7,7 +7,7 @@
         </a>
       </div>
       <p class="login-info">
-        <i class="fas fa-user"></i>
+        <i class="el-icon-user"></i>
         {{ user.displayName }}
       </p>
       <div>
@@ -19,7 +19,7 @@
       <div class="input-form">
         <div class="tapper">
           <input type="text" v-model="tapper_id" placeholder="タッパーID" />
-          <i class="fas fa-box" aria-hidden="true"></i>
+          <i class="el-icon-box"></i>
           <div class="qr-reader">
             <input
               type="image"
@@ -35,7 +35,7 @@
 
       <div class="input-form">
         <input type="text" v-model="food_name" placeholder="食材名" />
-        <i class="fas fa-utensils" aria-hidden="true"></i>
+        <i class="el-icon-knife-fork"></i>
       </div>
 
       <div class="exp-date">
@@ -48,6 +48,7 @@
         ></el-date-picker>
       </div>
       <div class="add-button">
+        <el-button @click="cancel_add" type="danger" icon="el-icon-close" round></el-button>
         <el-button @click="addFoods" type="primary" icon="el-icon-check" round></el-button>
       </div>
     </div>
@@ -59,23 +60,30 @@
         :key="item.tapper_id"
         v-show="item.is_active && item.temperature >= 0"
       >
-        <p>タッパーID:{{ item.tapper_id }}</p>
-        <p>食材名:{{ item.name }}</p>
-        <p>温度:{{ item.temperature }}</p>
-        <p>消費期限:{{ item.exp_date }}</p>
-        <el-button
-          @click="deleteFoods(item.tapper_id)"
-          class="delete-button"
-          type="info"
-          icon="el-icon-delete"
-          circle
-        ></el-button>
+        <el-card
+          class="card"
+          v-bind:class="{ exp_warn: food_warn[0], temp_warn: food_warn[1] }"
+          shadow="hover"
+        >
+          <div slot="header" class="clearfix">
+            <span>{{ item.name }}</span>
+            <el-button
+              style="float: right; padding: 3px 0"
+              type="text"
+              @click="deleteFoods(item.tapper_id)"
+            >Delete</el-button>
+          </div>
+          <p class="temp">温度: {{ item.temperature }} ℃</p>
+          <p>消費期限: {{ item.exp_date }}</p>
+        </el-card>
       </li>
     </div>
 
-    <div v-if="hide_add">
-      <a href="#/home" @click="page_add" class="page-add">+</a>
-    </div>
+    <transition name="el-fade-in">
+      <div v-if="hide_add">
+        <a href="#/home" @click="page_add" class="page-add">+</a>
+      </div>
+    </transition>
     <div class="qr" v-if="!hide_qr">
       <qrcode-stream @decode="onDecode" @init="onInit" />
       {{ error }}
@@ -108,14 +116,16 @@ export default {
       error: "",
       hide_qr: true,
       hide_add: true,
-      temp_counter: [0, 0, 0]
+      temp_counter: 0,
+      is_exp: false,
+      food_warn: [false, false, false],
+      flag: false
     };
   },
-
   methods: {
     post_to_slack(message) {
       const url =
-        "https://hooks.slack.com/services/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";
+        "https://hooks.slack.com/services/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";
       const data = {
         text: message
       };
@@ -167,7 +177,7 @@ export default {
     },
 
     // QR読取りキャンセル
-    qr_cancel(){
+    qr_cancel() {
       this.hide_qr = true;
     },
     // ログアウト
@@ -197,10 +207,17 @@ export default {
             { merge: true }
           );
         this.hide_add = true;
-        this.$message({
-          message: "食材が追加されました．",
-          type: "success"
-        });
+        if (this.list[this.tapper_id].name != "") {
+          this.$message({
+            message: "食材情報が上書きされました．",
+            type: "success"
+          });
+        } else {
+          this.$message({
+            message: "食材が追加されました．",
+            type: "success"
+          });
+        }
 
         this.tapper_id = null;
         this.exp_date = "";
@@ -210,6 +227,15 @@ export default {
       }
     },
 
+    cancel_add() {
+      this.$message("入力がキャンセルされました．");
+
+      this.hide_add = true;
+
+      this.tapper_id = null;
+      this.exp_date = "";
+      this.food_name = "";
+    },
     // is_active -> falseにしてリスト非表示
     deleteFoods(id) {
       this.$confirm("この食材を削除しますか？", "Warning", {
@@ -230,6 +256,7 @@ export default {
               },
               { merge: true }
             );
+          this.food_warn[0] = false;
           this.$message({
             type: "success",
             message: "Delete completed"
@@ -244,13 +271,11 @@ export default {
     }
   },
 
-  created: function() {
-    const user = firebase.auth().currentUser;
+  created() {
+    var user = firebase.auth().currentUser;
 
     if (user) {
       this.user = user;
-    } else {
-      this.$router.push("/signin");
     }
 
     // firestore からデータを取得
@@ -263,18 +288,53 @@ export default {
         this.list = buff;
 
         // 温度管理
-        for (var i = 0; i < buff.length - 1; i++) {
-          // console.log(buff[i].temperature);
-          if (buff[i].temperature > 10) this.temp_counter[i]++;
-        }
+        if (this.list[0].is_active) {
+          if (this.list[0].temperature > 18) {
+            this.temp_counter++;
+          } else {
+            this.temp_counter = 0;
+            this.food_warn[1] = false;
+          }
 
-        // console.log(this.temp_counter);
+          if (this.temp_counter >= 5) {
+            this.flag = true;
+            this.temp_counter = 0;
+          }
+
+          if (this.flag) {
+            var temp_notify =
+              String(this.list[0].name) + " が冷蔵庫から出しっぱなしです．";
+            this.post_to_slack(temp_notify);
+            this.flag = false;
+            this.food_warn[1] = true;
+          }
+
+          var now = moment();
+          var exp = moment(this.list[0].exp_date);
+
+          var tmp = false;
+          if (exp.diff(now, "days") + 1 <= 2) {
+            tmp = true;
+          }
+
+          if (!this.is_exp && tmp) {
+            var exp_notify =
+              String(this.list[0].name) +
+              " の消費期限が近づいています．\n消費期限は " +
+              String(this.list[0].exp_date) +
+              " です．";
+            this.post_to_slack(exp_notify);
+            this.is_exp = true;
+            this.food_warn[0] = true;
+          }
+        }
       });
   }
 };
 </script>
 
 <style scoped>
+/* 食材追加画面 */
 .main {
   padding: 30px 20px 60px 35px;
   border-radius: 15px;
@@ -282,64 +342,34 @@ export default {
   margin: 0 auto;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
-.foods-list {
-  font-weight: bold;
-  border-radius: 15px;
-  width: 300px;
-  text-align: center;
-  background-color: #53d6c7;
-  margin: 20px;
-  display: inline-block;
+
+/* 食材リストのデザイン */
+li {
+  list-style: none;
+}
+.card {
+  margin: 0.8vw;
+  border-radius: 20px;
+}
+.card p {
+  margin: 1vh;
 }
 
+/* 食材リストの色を変更 */
+.exp_warn {
+  background-color: #f5cd60;
+}
+.temp_warn {
+  background-color: #f56a60;
+}
+
+/* タッパーID，食材名入力フォーム */
 .input-form {
   position: relative;
-  /* width: 10%; */
-  /* margin-left: 20px; */
 }
-
-.qr {
-  width: 320px;
-  /* max-width: 100vw; */
-  margin: 0 auto;
-}
-
-.qr-cancel{
-  margin-top: 0.5vh;
-}
-.page-add {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: 10%;
-  margin-left: 20px;
-  font-size: 30px;
-  display: inline-block;
-  text-decoration: none;
-  background: #009e8c;
-  color: #fff;
-  width: 60px;
-  height: 60px;
-  line-height: 60px;
-  border-radius: 50%;
-  text-align: center;
-  font-weight: bold;
-  overflow: hidden;
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.29);
-  border-bottom: solid 3px #009e8c;
-  transition: 0.4s;
-}
-.page-add:active {
-  -webkit-transform: translateY(2px);
-  transform: translateY(2px);
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.15);
-  border-bottom: none;
-}
-
 input {
   max-width: 220px;
 }
-
 .input-form input[type="text"] {
   font: 15px/24px sans-serif;
   box-sizing: border-box;
@@ -367,16 +397,11 @@ input {
 .input-form input[type="text"]:focus + i {
   color: #da3c41;
 }
-
 .input-form .tapper {
   max-width: 190px;
   display: inline-flex;
 }
-
-.exp-date {
-  margin-top: 20px;
-}
-
+/* QRコードアイコン */
 .qr-reader {
   padding-left: 10px;
   padding-top: 13px;
@@ -384,32 +409,64 @@ input {
   height: 25px;
 }
 
+/* QR読み込み画面 */
+.qr {
+  width: 320px;
+  margin: 0 auto;
+}
+.qr-cancel {
+  margin-top: 0.5vh;
+}
+
+/* 食材追加ボタン ⊕ */
+.page-add {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  margin-left: 20px;
+  font-size: 30px;
+  text-decoration: none;
+  background: #009e8c;
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  border-radius: 50%;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.29);
+  border-bottom: solid 3px #009e8c;
+  transition: 0.4s;
+}
+.page-add:active {
+  -webkit-transform: translateY(2px);
+  transform: translateY(2px);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.15);
+  border-bottom: none;
+}
+
+/* 消費期限のDatePicker */
+.exp-date {
+  margin-top: 10px;
+}
+
+/* 食材追加確定ボタン */
 .add-button {
   float: right;
   margin-top: 10px;
   margin-right: 5px;
 }
-
-.delete-button {
-  margin-bottom: 1vh;
+.add-button:focus-visible {
+  outline: none;
 }
+
+/* ヘッダー */
 header {
   width: 100%;
   height: 70px;
   display: inline-flex;
   background: #009e8c;
 }
-
-h1 {
-  font-size: 50px;
-  padding-left: 20px;
-  margin-top: 0;
-}
-
-h1::first-letter {
-  color: white;
-}
-
 .login-info {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 20px;
@@ -419,7 +476,6 @@ h1::first-letter {
   text-align: right;
   color: white;
 }
-
 .logout-button {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   height: 70px;
