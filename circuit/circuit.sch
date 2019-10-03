@@ -1,0 +1,221 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L circuit:ESP32 U?
+U 1 1 5D96AEC4
+P 4250 3650
+F 0 "U?" H 4400 4950 50  0000 C CNN
+F 1 "ESP32" H 4400 4850 50  0000 C CNN
+F 2 "" H 5100 2550 50  0001 C CNN
+F 3 "" H 5100 2550 50  0001 C CNN
+	1    4250 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Battery_Cell BT?
+U 1 1 5D96E592
+P 3800 2300
+F 0 "BT?" V 3545 2350 50  0000 C CNN
+F 1 "RC2032" V 3636 2350 50  0000 C CNN
+F 2 "" V 3800 2360 50  0001 C CNN
+F 3 "~" V 3800 2360 50  0001 C CNN
+	1    3800 2300
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4100 2400 4100 2300
+Wire Wire Line
+	4100 2300 4000 2300
+$Comp
+L power:GND #PWR?
+U 1 1 5D97014E
+P 3600 2400
+F 0 "#PWR?" H 3600 2150 50  0001 C CNN
+F 1 "GND" H 3605 2227 50  0000 C CNN
+F 2 "" H 3600 2400 50  0001 C CNN
+F 3 "" H 3600 2400 50  0001 C CNN
+	1    3600 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3600 2400 3600 2300
+Wire Wire Line
+	3600 2300 3700 2300
+$Comp
+L power:+3.3V #PWR?
+U 1 1 5D97084A
+P 4200 2300
+F 0 "#PWR?" H 4200 2150 50  0001 C CNN
+F 1 "+3.3V" H 4215 2473 50  0000 C CNN
+F 2 "" H 4200 2300 50  0001 C CNN
+F 3 "" H 4200 2300 50  0001 C CNN
+	1    4200 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4200 2300 4200 2400
+$Comp
+L power:GND #PWR?
+U 1 1 5D970E5F
+P 4250 5100
+F 0 "#PWR?" H 4250 4850 50  0001 C CNN
+F 1 "GND" H 4255 4927 50  0000 C CNN
+F 2 "" H 4250 5100 50  0001 C CNN
+F 3 "" H 4250 5100 50  0001 C CNN
+	1    4250 5100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4250 5100 4250 5000
+Wire Wire Line
+	4350 4900 4350 5000
+Wire Wire Line
+	4350 5000 4250 5000
+Connection ~ 4250 5000
+Wire Wire Line
+	4250 5000 4250 4900
+Wire Wire Line
+	4250 5000 4150 5000
+Wire Wire Line
+	4150 5000 4150 4900
+NoConn ~ 3700 3500
+NoConn ~ 3700 3300
+NoConn ~ 3700 3200
+NoConn ~ 3700 3050
+NoConn ~ 3700 2900
+NoConn ~ 3700 2800
+NoConn ~ 3700 2700
+$Comp
+L Sensor_Temperature:DS1822 U?
+U 1 1 5D972E32
+P 5150 2700
+F 0 "U?" H 4920 2746 50  0000 R CNN
+F 1 "LM61CIZ" H 4920 2655 50  0000 R CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline" H 4150 2450 50  0001 C CNN
+F 3 "http://datasheets.maximintegrated.com/en/ds/DS1822.pdf" H 5000 2950 50  0001 C CNN
+	1    5150 2700
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	4850 2700 4750 2700
+$Comp
+L power:+3.3V #PWR?
+U 1 1 5D97631F
+P 5150 2300
+F 0 "#PWR?" H 5150 2150 50  0001 C CNN
+F 1 "+3.3V" H 5165 2473 50  0000 C CNN
+F 2 "" H 5150 2300 50  0001 C CNN
+F 3 "" H 5150 2300 50  0001 C CNN
+	1    5150 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5150 2300 5150 2400
+$Comp
+L power:GND #PWR?
+U 1 1 5D976EDB
+P 5150 3100
+F 0 "#PWR?" H 5150 2850 50  0001 C CNN
+F 1 "GND" H 5155 2927 50  0000 C CNN
+F 2 "" H 5150 3100 50  0001 C CNN
+F 3 "" H 5150 3100 50  0001 C CNN
+	1    5150 3100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5150 3100 5150 3000
+NoConn ~ 4750 2600
+NoConn ~ 4750 2800
+NoConn ~ 4750 2900
+NoConn ~ 4750 3000
+NoConn ~ 4750 3100
+NoConn ~ 4750 3200
+NoConn ~ 4750 3300
+NoConn ~ 4750 3400
+NoConn ~ 4750 3500
+NoConn ~ 4750 3600
+NoConn ~ 4750 3700
+NoConn ~ 4750 3800
+NoConn ~ 4750 3900
+NoConn ~ 4750 4000
+NoConn ~ 4750 4100
+NoConn ~ 4750 4200
+NoConn ~ 4750 4300
+NoConn ~ 4750 4500
+NoConn ~ 4750 4600
+NoConn ~ 4750 4700
+NoConn ~ 3700 4600
+NoConn ~ 3700 4500
+NoConn ~ 3700 4400
+NoConn ~ 3700 4300
+$Comp
+L Device:R R?
+U 1 1 5D97ADDE
+P 4900 4150
+F 0 "R?" H 4970 4196 50  0000 L CNN
+F 1 "3.3Ω" H 4970 4105 50  0000 L CNN
+F 2 "" V 4830 4150 50  0001 C CNN
+F 3 "~" H 4900 4150 50  0001 C CNN
+	1    4900 4150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 4300 4900 4400
+Wire Wire Line
+	4900 4400 4750 4400
+Wire Wire Line
+	4900 4400 5150 4400
+Connection ~ 4900 4400
+$Comp
+L power:+3.3V #PWR?
+U 1 1 5D97C1A8
+P 4900 3900
+F 0 "#PWR?" H 4900 3750 50  0001 C CNN
+F 1 "+3.3V" H 4915 4073 50  0000 C CNN
+F 2 "" H 4900 3900 50  0001 C CNN
+F 3 "" H 4900 3900 50  0001 C CNN
+	1    4900 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 3900 4900 4000
+$Comp
+L power:GND #PWR?
+U 1 1 5D97CAFD
+P 5650 4500
+F 0 "#PWR?" H 5650 4250 50  0001 C CNN
+F 1 "GND" H 5655 4327 50  0000 C CNN
+F 2 "" H 5650 4500 50  0001 C CNN
+F 3 "" H 5650 4500 50  0001 C CNN
+	1    5650 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5650 4500 5650 4400
+Wire Wire Line
+	5650 4400 5550 4400
+$Comp
+L Switch:SW_Push SW?
+U 1 1 5D97A4D1
+P 5350 4400
+F 0 "SW?" H 5350 4685 50  0000 C CNN
+F 1 "DISABLE" H 5350 4594 50  0000 C CNN
+F 2 "" H 5350 4600 50  0001 C CNN
+F 3 "~" H 5350 4600 50  0001 C CNN
+	1    5350 4400
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
