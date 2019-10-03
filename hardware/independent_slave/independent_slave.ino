@@ -66,5 +66,15 @@ void loop() {
   else {
     Serial.println(httpResponseCode);
   }
-  delay(INTERVAL);
+  for (int i = 0; i * 10 < INTERVAL; ++i) {
+    if (digitalRead(5) == LOW) {
+      http.begin("https://us-central1-frid-vue.cloudfunctions.net/disableFood");
+      Serial.println("disable");
+      http.addHeader("Content-Type", "application/json");
+      auto json = String("{\"id\":\"0\"}");
+      http.POST(json);
+      http.end();
+    }
+    delay(10);
+  }
 }

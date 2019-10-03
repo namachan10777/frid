@@ -18,3 +18,9 @@ export const updateTemp = functions.https.onRequest(async (request, response) =>
 	});
 	response.sendStatus(200);
 });
+
+export const disableFood = functions.https.onRequest(async (request, response) => {
+	await firestore.collection("foods").doc(request.body.id).update({
+		is_active: false
+	});
+});
